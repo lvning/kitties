@@ -32,7 +32,7 @@ fn it_works_for_breed() {
         let _ = Kitties::create(Origin::signed(1));
         let _ = Kitties::create(Origin::signed(1));
         let _ = Kitties::breed(Origin::signed(1), 0, 1);
-        assert_eq!(Kitties::next_kitty_id(), 3);
+        assert_eq!(Kitties::next_kitty_id(), 2);
     });
 }
 
@@ -66,7 +66,7 @@ fn it_failed_for_breed_max_kitties_owned() {
     new_test_ext().execute_with(|| {
         let _ = Kitties::create(Origin::signed(1));
         let _ = Kitties::create(Origin::signed(1));
-        assert_noop!(Kitties::breed(Origin::signed(1), 0, 1), Error::<Test>::InvalidKittyId);
+        assert_noop!(Kitties::breed(Origin::signed(1), 0, 1), Error::<Test>::ExceedMaxKittyOwned);
     });
 }
 

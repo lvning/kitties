@@ -15,6 +15,7 @@ pub mod pallet {
 	use sp_io::hashing::blake2_128;
 	use frame_support::traits::{ Randomness, Currency, ReservableCurrency };
 	use sp_runtime::traits::{ AtLeast32BitUnsigned, Bounded, One };
+	use frame_support::{transactional};
 
 	#[derive(Encode, Decode, Clone, PartialEq, Eq, Debug, TypeInfo, MaxEncodedLen)]
 	pub struct Kitty(pub [u8; 16]);
@@ -95,6 +96,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[transactional]
 		#[pallet::weight(10_000)]
 		pub fn breed(origin: OriginFor<T>, kitty_id_1: T::KittyIndex, kitty_id_2: T::KittyIndex) -> DispatchResult {
 			let who = ensure_signed(origin)?;
@@ -126,6 +128,7 @@ pub mod pallet {
 			Ok(())
 		}
 
+		#[transactional]
 		#[pallet::weight(10_000)]
 		pub fn transfer(origin: OriginFor<T>, kitty_id: T::KittyIndex, new_owner: T::AccountId) -> DispatchResult {
 			let prev_owner = ensure_signed(origin)?;
