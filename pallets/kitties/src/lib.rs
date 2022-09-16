@@ -2,6 +2,12 @@
 
 pub use pallet::*;
 
+#[cfg(test)]
+mod mock;
+
+#[cfg(test)]
+mod tests;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;
@@ -93,13 +99,14 @@ pub mod pallet {
 		pub fn breed(origin: OriginFor<T>, kitty_id_1: T::KittyIndex, kitty_id_2: T::KittyIndex) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
-
 			ensure!(kitty_id_1 != kitty_id_2, Error::<T>::SameKittyId);
 			let kitty_1 = Self::get_kitty(kitty_id_1).map_err(|_| Error::<T>::InvalidKittyId)?;
 			let kitty_2 = Self::get_kitty(kitty_id_2).map_err(|_| Error::<T>::InvalidKittyId)?;
 
-			let kitty_id = Self::get_next_id().map_err(|_| Error::<T>::InvalidKittyId)?;
+			let kitty_id = Self::get_next_id().map_err(|_| Error::<T>::KittiesCountOverflow)?;
+			
+			T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
+
 			let selector = Self::random_value(&who);
 			let mut data = [0u8; 16];
 			for i in 0..kitty_1.0.len() {
@@ -112,7 +119,7 @@ pub mod pallet {
 
 			OwnerKitties::<T>::try_mutate(&who, |kitty_vec| {
 				kitty_vec.try_push(new_kitty.clone())
-			}).map_err(|_| <Error<T>>::ExceedMaxKittyOwned)?;
+			}).map_err(|_| Error::<T>::ExceedMaxKittyOwned)?;
 
 			Self::deposit_event(Event::KittyCreated(who, kitty_id, new_kitty));
 
@@ -142,7 +149,7 @@ pub mod pallet {
 
 			OwnerKitties::<T>::try_mutate(&new_owner, |vec| {
 				vec.try_push(exsit_kitty)
-			}).map_err(|_| <Error<T>>::ExceedMaxKittyOwned)?;
+			}).map_err(|_| Error::<T>::ExceedMaxKittyOwned)?;
 
 			Self::deposit_event(Event::KittyTransferred(prev_owner,new_owner,kitty_id));
 
